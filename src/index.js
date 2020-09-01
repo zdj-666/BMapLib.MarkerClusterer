@@ -128,7 +128,7 @@ var MarkerClusterer  = function(map, options){
     this._styles = opts["styles"] || [];
 
     var that = this;
-    this._map.addEventListener("zoomend", function () {
+    this._map.addEventListener("zoomend", function (lv) {
         var lvl = lv.target.getZoom(); ////////////////////////////////
         that._gridSize = 1000 / lvl;
         that._redraw();
