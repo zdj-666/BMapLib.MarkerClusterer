@@ -134,9 +134,9 @@
        this._styles = opts["styles"] || [];
 
        var that = this;
-       this._map.addEventListener("zoomend", function (lv) {
-           let lvl = lv.target.getZoom(); ////////////////////////////////
-           that._gridSize = 1000 / lvl;
+       this._map.addEventListener("zoomend", function () {
+           // let lvl = lv.target.getZoom(); ////////////////////////////////
+           // that._gridSize = 1000 / lvl;
            that._redraw();
          });
 
