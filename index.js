@@ -135,8 +135,8 @@
 
        var that = this;
        this._map.addEventListener("zoomend", function () {
-           // let lvl = lv.target.getZoom(); ////////////////////////////////
-           // that._gridSize = 1000 / lvl;
+           var lvl = lv.target.getZoom(); ////////////////////////////////
+           that._gridSize = 1000 / lvl;
            that._redraw();
          });
 
@@ -195,7 +195,7 @@
    MarkerClusterer.prototype._createClusters = function(){
        var mapBounds = this._map.getBounds();
        var extendedBounds = getExtendedBounds(this._map, mapBounds, this._gridSize);
-       let temp=[];
+       var temp=[];
        for (var i = 0, marker; marker = this._markers[i]; i++) {
          if (extendedBounds.containsPoint(marker.getPosition())) {
            if (!marker.isInCluster) {
@@ -249,6 +249,29 @@
            // }
          }
        }
+
+       // var distance = 4000000;
+       // var clusterToAddTo = null;
+       // var position = marker.getPosition();
+       // for(var i = 0, cluster; cluster = this._clusters[i]; i++){
+       //     var center = cluster.getCenter();
+       //     if(center){
+       //         var d = this._map.getDistance(center, marker.getPosition());
+       //         if(d < distance){
+       //             distance = d;
+       //             clusterToAddTo = cluster;
+       //         }
+       //     }
+       // }
+
+       if (clusterToAddTo && clusterToAddTo.isMarkerInClusterBounds(marker)){
+           clusterToAddTo.addMarker(marker);
+       } else {
+           var cluster = new Cluster(this);
+           cluster.addMarker(marker);            
+           this._clusters.push(cluster);
+       }    
+
 
        if (clusterToAddTo && clusterToAddTo.isMarkerInClusterBounds(marker)){
            clusterToAddTo.addMarker(marker);
