@@ -244,7 +244,6 @@ MarkerClusterer.prototype._addToClosestCluster = function (marker){
         // }
       }
     }
-
     // var distance = 4000000;
     // var clusterToAddTo = null;
     // var position = marker.getPosition();
