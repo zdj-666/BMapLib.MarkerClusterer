@@ -155,9 +155,6 @@
    * @return 无返回值。
    */
   MarkerClusterer.prototype.addMarkers = function(markers){
-      if (!markers.length) {
-          return
-      }
       for(var i = 0, len = markers.length; i <len ; i++){
           this._pushMarkerTo(markers[i]);
       }
@@ -227,50 +224,44 @@
    * @return 无返回值。
    */
   MarkerClusterer.prototype._addToClosestCluster = function (marker){
-      //var distance = 4000000;//////////////////////////////
-      var dis2 = 16000000000000,d1,d2,d;
-      var clusterToAddTo = null;
-      var position = marker.getPosition();
-
-      for (var i = 0, cluster; cluster = this._clusters[i]; i++) {
-        var center = cluster.getCenter();
-        if (center) {
-          d1 = center.lng-position.lng;
-          d2 = center.lat-position.lat;
-          d=d1*d1+d2*d2;
-          if(d < dis2){
-              dis2 = d;
-              clusterToAddTo = cluster;
-          }
-          // var d = this._map.getDistance(center, position);
-          // if (d < distance) {
-          //   distance = d;
-          //   clusterToAddTo = cluster;
-          // }
-        }
-      }
-      // var distance = 4000000;
+      // //var distance = 4000000;//////////////////////////////
+      // var dis2 = 16000000000000,d1,d2,d;
       // var clusterToAddTo = null;
       // var position = marker.getPosition();
-      // for(var i = 0, cluster; cluster = this._clusters[i]; i++){
-      //     var center = cluster.getCenter();
-      //     if(center){
-      //         var d = this._map.getDistance(center, marker.getPosition());
-      //         if(d < distance){
-      //             distance = d;
-      //             clusterToAddTo = cluster;
-      //         }
+
+      // for (var i = 0, cluster; cluster = this._clusters[i]; i++) {
+      //   var center = cluster.getCenter();
+      //   if (center) {
+      //     d1 = center.lng-position.lng;
+      //     d2 = center.lat-position.lat;
+      //     console.log(d1,d2)
+      //     d=d1*d1+d2*d2;
+      //     if(d < dis2){
+      //         dis2 = d;
+      //         clusterToAddTo = cluster;
       //     }
+      //     // var d = this._map.getDistance(center, position);
+      //     // if (d < distance) {
+      //     //   distance = d;
+      //     //   clusterToAddTo = cluster;
+      //     // }
+      //   }
       // }
 
-      if (clusterToAddTo && clusterToAddTo.isMarkerInClusterBounds(marker)){
-          clusterToAddTo.addMarker(marker);
-      } else {
-          var cluster = new Cluster(this);
-          cluster.addMarker(marker);            
-          this._clusters.push(cluster);
-      }    
 
+      var distance = 4000000;
+      var clusterToAddTo = null;
+      for(var i = 0, cluster; cluster = this._clusters[i]; i++){
+          var center = cluster.getCenter();
+          if(center){
+              var d = this._map.getDistance(center, marker.getPosition());
+              if(d < distance){
+                  distance = d;
+                  clusterToAddTo = cluster;
+              }
+          }
+      }
+     
 
       if (clusterToAddTo && clusterToAddTo.isMarkerInClusterBounds(marker)){
           clusterToAddTo.addMarker(marker);
