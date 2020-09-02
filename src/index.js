@@ -118,9 +118,9 @@ var MarkerClusterer  = function(map, options){
     
     var opts = options || {};
     this._zIndex = opts["zIndex"];
-    this._gridSize = opts["gridSize"] || 1000/map.getZoom();
+    this._gridSize = opts["gridSize"] || 60;
     this._maxZoom = opts["maxZoom"] || 18;
-    this._minClusterSize = opts["minClusterSize"] || 3;           
+    this._minClusterSize = opts["minClusterSize"] || 2;           
     this._isAverageCenter = false;
     if (opts['isAverageCenter'] != undefined) {
         this._isAverageCenter = opts['isAverageCenter'];
@@ -128,11 +128,9 @@ var MarkerClusterer  = function(map, options){
     this._styles = opts["styles"] || [];
 
     var that = this;
-    this._map.addEventListener("zoomend", function (lv) {
-        var lvl = lv.target.getZoom(); ////////////////////////////////
-        that._gridSize = 1000 / lvl;
-        that._redraw();
-      });
+    this._map.addEventListener("zoomend",function(){
+        that._redraw();     
+    });
 
     this._map.addEventListener("moveend",function(){
         that._redraw();     
@@ -149,6 +147,9 @@ var MarkerClusterer  = function(map, options){
  * @return 无返回值。
  */
 MarkerClusterer.prototype.addMarkers = function(markers){
+    if (!markers.length) {
+        return
+    }
     for(var i = 0, len = markers.length; i <len ; i++){
         this._pushMarkerTo(markers[i]);
     }
@@ -162,11 +163,11 @@ MarkerClusterer.prototype.addMarkers = function(markers){
  * @return 无返回值。
  */
 MarkerClusterer.prototype._pushMarkerTo = function(marker){
-    //var index = indexOf(marker, this._markers);
-    //if(index === -1){
+    var index = indexOf(marker, this._markers);
+    if(index === -1){
         marker.isInCluster = false;
         this._markers.push(marker);//Marker拖放后enableDragging不做变化，忽略
-   // }
+    }
 };
 
 /**
@@ -185,31 +186,15 @@ MarkerClusterer.prototype.addMarker = function(marker) {
  */
 MarkerClusterer.prototype._createClusters = function(){
     var mapBounds = this._map.getBounds();
+    if (!mapBounds.getCenter()) {
+        return
+    }
     var extendedBounds = getExtendedBounds(this._map, mapBounds, this._gridSize);
-    var temp=[];
-    for (var i = 0, marker; marker = this._markers[i]; i++) {
-      if (extendedBounds.containsPoint(marker.getPosition())) {
-        if (!marker.isInCluster) {
-          temp.push(marker);
-           
+    for(var i = 0, marker; marker = this._markers[i]; i++){
+        if(!marker.isInCluster && extendedBounds.containsPoint(marker.getPosition()) ){ 
+            this._addToClosestCluster(marker);
         }
-      }
-    }
-    let bd=new Date();
-    // console.log('temp.length:'+temp.length) 
-    if(temp.length>0){
-      for(var j=0,mk;mk=temp[j];j++){
-        this._addToClosestCluster(mk);
-      }
-    }
-    var len = this._clusters.length;
-    // console.log('_createClusters2:' + (new Date()-bd));
-
-    for (var i = 0; i < len; i++) {
-      if (this._clusters[i]) {
-        this._clusters[i].render();
-      }
-    }
+    }   
 };
 
 /**
@@ -219,33 +204,9 @@ MarkerClusterer.prototype._createClusters = function(){
  * @return 无返回值。
  */
 MarkerClusterer.prototype._addToClosestCluster = function (marker){
-    // //var distance = 4000000;//////////////////////////////
-    // var dis2 = 16000000000000,d1,d2,d;
-    // var clusterToAddTo = null;
-    // var position = marker.getPosition();
-
-    // for (var i = 0, cluster; cluster = this._clusters[i]; i++) {
-    //   var center = cluster.getCenter();
-    //   if (center) {
-    //     d1 = center.lng-position.lng;
-    //     d2 = center.lat-position.lat;
-    //     console.log(d1,d2)
-    //     d=d1*d1+d2*d2;
-    //     if(d < dis2){
-    //         dis2 = d;
-    //         clusterToAddTo = cluster;
-    //     }
-    //     // var d = this._map.getDistance(center, position);
-    //     // if (d < distance) {
-    //     //   distance = d;
-    //     //   clusterToAddTo = cluster;
-    //     // }
-    //   }
-    // }
-
-
     var distance = 4000000;
     var clusterToAddTo = null;
+    var position = marker.getPosition();
     for(var i = 0, cluster; cluster = this._clusters[i]; i++){
         var center = cluster.getCenter();
         if(center){
@@ -256,7 +217,6 @@ MarkerClusterer.prototype._addToClosestCluster = function (marker){
             }
         }
     }
-   
 
     if (clusterToAddTo && clusterToAddTo.isMarkerInClusterBounds(marker)){
         clusterToAddTo.addMarker(marker);
@@ -594,22 +554,25 @@ Cluster.prototype.addMarker = function(marker){
 
     marker.isInCluster = true;
     this._markers.push(marker);
-};
-
-Cluster.prototype.render = function () {
 
     var len = this._markers.length;
-    if (len < this._minClusterSize) {
-      for (var i = 0; i < len; i++) {
-        this._map.addOverlay(this._markers[i]);
-      }
-    } else {
-      this._map.addOverlay(this._clusterMarker);
-      this._isReal = true;
-      this.updateClusterMarker();
-    }
-
-  }
+    if(len < this._minClusterSize ){     
+        this._map.addOverlay(marker);
+        //this.updateClusterMarker();
+        return true;
+    } else if (len === this._minClusterSize) {
+        for (var i = 0; i < len; i++) {
+            var label = this._markers[i].getLabel();
+            this._markers[i].getMap() && this._map.removeOverlay(this._markers[i]);
+            this._markers[i].setLabel(label);
+        }
+        
+    } 
+    this._map.addOverlay(this._clusterMarker);
+    this._isReal = true;
+    this.updateClusterMarker();
+    return true;
+};
 
 /**
  * 判断一个标记是否在该聚合中。
