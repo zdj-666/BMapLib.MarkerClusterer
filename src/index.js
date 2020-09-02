@@ -603,25 +603,22 @@ Cluster.prototype.addMarker = function(marker){
 
     marker.isInCluster = true;
     this._markers.push(marker);
+};
+
+Cluster.prototype.render = function () {
 
     var len = this._markers.length;
-    if(len < this._minClusterSize ){     
-        this._map.addOverlay(marker);
-        //this.updateClusterMarker();
-        return true;
-    } else if (len === this._minClusterSize) {
-        for (var i = 0; i < len; i++) {
-            var label = this._markers[i].getLabel();
-            this._markers[i].getMap() && this._map.removeOverlay(this._markers[i]);
-            this._markers[i].setLabel(label);
-        }
-        
-    } 
-    this._map.addOverlay(this._clusterMarker);
-    this._isReal = true;
-    this.updateClusterMarker();
-    return true;
-};
+    if (len < this._minClusterSize) {
+      for (var i = 0; i < len; i++) {
+        this._map.addOverlay(this._markers[i]);
+      }
+    } else {
+      this._map.addOverlay(this._clusterMarker);
+      this._isReal = true;
+      this.updateClusterMarker();
+    }
+
+  }
 
 /**
  * 判断一个标记是否在该聚合中。
